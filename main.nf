@@ -801,7 +801,7 @@ process indexinputbam {
  * STEP 1a - FastQC
  */
 process fastqc {
-    label 'sc_small'
+    label 'mc_small'
     tag "${libraryid}_L${lane}"
     publishDir "${params.outdir}/FastQC/input_fastq", mode: 'copy',
         saveAs: {filename -> filename.indexOf(".zip") > 0 ? "zips/$filename" : "$filename"}
@@ -818,7 +818,7 @@ process fastqc {
     script:
     if ( seqtype == 'PE' ) {
     """
-    fastqc -q $r1 $r2
+    fastqc -t $cpus -q $r1 $r2
     rename 's/_fastqc\\.zip\$/_raw_fastqc.zip/' *_fastqc.zip
     rename 's/_fastqc\\.html\$/_raw_fastqc.html/' *_fastqc.html
     """
@@ -1151,7 +1151,7 @@ ch_lanemerge_for_mapping
 */
 // TODO: fastqc_after_clipping not happy when skip_collapsing 
 process fastqc_after_clipping {
-    label 'sc_small'
+    label 'mc_small'
     tag "${libraryid}_L${lane}"
     publishDir "${params.outdir}/FastQC/after_clipping", mode: 'copy',
         saveAs: {filename -> filename.indexOf(".zip") > 0 ? "zips/$filename" : "$filename"}
@@ -1167,11 +1167,11 @@ process fastqc_after_clipping {
     script:
     if ( params.skip_collapse && seqtype == "PE" ) {
     """
-    fastqc -q ${r1} ${r2}
+    fastqc -t $cpus -q ${r1} ${r2}
     """
     } else {
     """
-    fastqc -q ${r1}
+    fastqc -t $cpus -q ${r1}
     """
     }
 
