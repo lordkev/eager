@@ -818,13 +818,13 @@ process fastqc {
     script:
     if ( seqtype == 'PE' ) {
     """
-    fastqc -t $cpus -q $r1 $r2
+    fastqc -t ${task.cpus} -q $r1 $r2
     rename 's/_fastqc\\.zip\$/_raw_fastqc.zip/' *_fastqc.zip
     rename 's/_fastqc\\.html\$/_raw_fastqc.html/' *_fastqc.html
     """
     } else {
     """
-    fastqc -q $r1
+    fastqc -t ${task.cpus} -q $r1
     rename 's/_fastqc\\.zip\$/_raw_fastqc.zip/' *_fastqc.zip
     rename 's/_fastqc\\.html\$/_raw_fastqc.html/' *_fastqc.html
     """
@@ -1167,11 +1167,11 @@ process fastqc_after_clipping {
     script:
     if ( params.skip_collapse && seqtype == "PE" ) {
     """
-    fastqc -t $cpus -q ${r1} ${r2}
+    fastqc -t ${task.cpus} -q ${r1} ${r2}
     """
     } else {
     """
-    fastqc -t $cpus -q ${r1}
+    fastqc -t ${task.cpus} -q ${r1}
     """
     }
 
