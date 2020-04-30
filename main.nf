@@ -229,6 +229,9 @@ params.strip_mode = 'strip'
 
 ch_multiqc_config = Channel.fromPath(params.multiqc_config)
 ch_output_docs = Channel.fromPath("${params.externaldir}/docs/output.md")
+ch_extract_map_reads = Channel.fromPath("${params.externaldir}/bin/extract_map_reads.py")
+ch_markdown_to_html = Channel.fromPath("${params.externaldir}/bin/markdown_to_html.r")
+ch_scrape_software_versions = Channel.fromPath("${params.externaldir}/bin/scrape_software_versions.py")
 
 // Validate inputs
 if ( params.fasta.isEmpty () ){
@@ -928,6 +931,7 @@ process strip_input_fastq {
     input: 
     set val(name), file(fq) from ch_read_unmap.mix(ch_read_unmap_convertBam)
     file bam from ch_bwa_mapped_reads_strip.mix(ch_circular_mapped_reads_strip, ch_bwamem_mapped_reads_strip)
+    file extract_map_reads from ch_extract_map_reads
 
     output:
     file "*.fq.gz" into unmapped_fq_ch
@@ -938,14 +942,16 @@ process strip_input_fastq {
         out_fwd = bam.baseName+'.stripped.fq.gz'
         """
         samtools index $bam
-        extract_map_reads.py $bam ${fq[0]} -m ${params.strip_mode} -of $out_fwd -p ${task.cpus}
+        chmod +x $extract_map_reads
+        $extract_map_reads $bam ${fq[0]} -m ${params.strip_mode} -of $out_fwd -p ${task.cpus}
         """
     } else {
         out_fwd = bam.baseName+'.stripped.fwd.fq.gz'
         out_rev = bam.baseName+'.stripped.rev.fq.gz'
         """
         samtools index $bam
-        extract_map_reads.py $bam ${fq[0]} -rev ${fq[1]} -m  ${params.strip_mode} -of $out_fwd -or $out_rev -p ${task.cpus}
+        chmod +x $extract_map_reads
+        $extract_map_reads $bam ${fq[0]} -rev ${fq[1]} -m  ${params.strip_mode} -of $out_fwd -or $out_rev -p ${task.cpus}
         """ 
     }
     
@@ -1242,13 +1248,15 @@ process output_documentation {
 
     input:
     file output_docs from ch_output_docs
+    file markdown_to_html from ch_markdown_to_html
 
     output:
     file "results_description.html"
 
     script:
     """
-    markdown_to_html.r $output_docs results_description.html
+    chmod +x $markdown_to_html
+    $markdown_to_html $output_docs results_description.html
     """
 }
 
@@ -1260,6 +1268,7 @@ process get_software_versions {
 
     input:
     file json from ch_damageprofiler_for_software_versions
+    file scrape_software_versions from ch_scrape_software_versions
 
     output:
     file 'software_versions_mqc.yaml' into software_versions_yaml
@@ -1283,7 +1292,8 @@ process get_software_versions {
     qualimap --version &> v_qualimap.txt 2>&1 || true
     cat $json &> v_damageprofiler.txt 2>&1 || true 
     
-    scrape_software_versions.py &> software_versions_mqc.yaml
+    chmod +x $scrape_software_versions
+    $scrape_software_versions &> software_versions_mqc.yaml
     """
 }
 
