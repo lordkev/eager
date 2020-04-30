@@ -228,7 +228,7 @@ params.strip_mode = 'strip'
 
 ch_multiqc_config = Channel.fromPath(params.multiqc_config)
 ch_output_docs = Channel.fromPath("$baseDir/docs/output.md")
-where_are_my_files = file("$baseDir/assets/where_are_my_files.txt")
+
 // Validate inputs
 if ( params.fasta.isEmpty () ){
     exit 1, "Please specify --fasta with the path to your reference"
@@ -451,17 +451,14 @@ process makeBWAIndex {
     tag {fasta}
     publishDir path: "${params.outdir}/reference_genome/bwa_index", mode: 'copy', saveAs: { filename -> 
             if (params.saveReference) filename 
-            else if(!params.saveReference && filename == "where_are_my_files.txt") filename
             else null
     }
 
     input:
     file fasta from fasta_for_indexing
-    file where_are_my_files
 
     output:
     file "BWAIndex" into (bwa_index, bwa_index_bwamem)
-    file "where_are_my_files.txt"
 
     script:
     """
@@ -479,18 +476,15 @@ process makeFastaIndex {
     tag {fasta}
     publishDir path: "${params.outdir}/reference_genome/fasta_index", mode: 'copy', saveAs: { filename -> 
             if (params.saveReference) filename 
-            else if(!params.saveReference && filename == "where_are_my_files.txt") filename
             else null
     }
     when: !params.fasta_index && !params.fasta.isEmpty() && params.aligner == 'bwa'
 
     input:
     file fasta from fasta_for_indexing
-    file where_are_my_files
 
     output:
     file "*.fai" into ch_fasta_faidx_index
-    file "where_are_my_files.txt"
 
     script:
     """
@@ -507,7 +501,6 @@ process makeSeqDict {
     tag {fasta}
     publishDir path: "${params.outdir}/reference_genome/seq_dict", mode: 'copy', saveAs: { filename -> 
             if (params.saveReference) filename 
-            else if(!params.saveReference && filename == "where_are_my_files.txt") filename
             else null
     }
     
@@ -515,11 +508,9 @@ process makeSeqDict {
 
     input:
     file fasta from fasta_for_indexing
-    file where_are_my_files
 
     output:
     file "*.dict" into ch_seq_dict
-    file "where_are_my_files.txt"
 
     script:
     """
@@ -746,7 +737,6 @@ process circulargenerator{
     tag "$prefix"
     publishDir "${params.outdir}/reference_genome/circularmapper_index", mode: 'copy', saveAs: { filename -> 
             if (params.saveReference) filename 
-            else if(!params.saveReference && filename == "where_are_my_files.txt") filename
             else null
     }
 
