@@ -226,8 +226,9 @@ params.strip_input_fastq = false
 params.strip_mode = 'strip'
 
 
-multiqc_config = file(params.multiqc_config)
-output_docs = file("$baseDir/docs/output.md")
+ch_multiqc_config = Channel.fromPath(params.multiqc_config)
+ch_output_docs = 
+output_docs = Channel.fromPath("$baseDir/docs/output.md")
 where_are_my_files = file("$baseDir/assets/where_are_my_files.txt")
 // Validate inputs
 if ( params.fasta.isEmpty () ){
@@ -1249,7 +1250,7 @@ process output_documentation {
     publishDir "${params.outdir}/Documentation", mode: 'copy'
 
     input:
-    file output_docs
+    file output_docs from ch_output_docs
 
     output:
     file "results_description.html"
@@ -1303,7 +1304,7 @@ process multiqc {
     publishDir "${params.outdir}/MultiQC", mode: 'copy'
 
     input:
-    file multiqc_config
+    file multiqc_config from ch_multiqc_config
     file ('fastqc_raw/*') from ch_fastqc_results.collect().ifEmpty([])
     file('fastqc/*') from ch_fastqc_after_clipping.collect().ifEmpty([])
     file ('software_versions/software_versions_mqc*') from software_versions_yaml.collect().ifEmpty([])
