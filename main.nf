@@ -943,7 +943,7 @@ process strip_input_fastq {
         """
         samtools index $bam
         chmod +x $extract_map_reads
-        $extract_map_reads $bam ${fq[0]} -m ${params.strip_mode} -of $out_fwd -p ${task.cpus}
+        ./$extract_map_reads $bam ${fq[0]} -m ${params.strip_mode} -of $out_fwd -p ${task.cpus}
         """
     } else {
         out_fwd = bam.baseName+'.stripped.fwd.fq.gz'
@@ -951,7 +951,7 @@ process strip_input_fastq {
         """
         samtools index $bam
         chmod +x $extract_map_reads
-        $extract_map_reads $bam ${fq[0]} -rev ${fq[1]} -m  ${params.strip_mode} -of $out_fwd -or $out_rev -p ${task.cpus}
+        ./$extract_map_reads $bam ${fq[0]} -rev ${fq[1]} -m  ${params.strip_mode} -of $out_fwd -or $out_rev -p ${task.cpus}
         """ 
     }
     
@@ -1256,7 +1256,7 @@ process output_documentation {
     script:
     """
     chmod +x $markdown_to_html
-    $markdown_to_html $output_docs results_description.html
+    ./$markdown_to_html $output_docs results_description.html
     """
 }
 
@@ -1293,7 +1293,7 @@ process get_software_versions {
     cat $json &> v_damageprofiler.txt 2>&1 || true 
     
     chmod +x $scrape_software_versions
-    $scrape_software_versions &> software_versions_mqc.yaml
+    ./$scrape_software_versions &> software_versions_mqc.yaml
     """
 }
 
