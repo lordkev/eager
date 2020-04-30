@@ -228,8 +228,7 @@ params.strip_mode = 'strip'
 
 ch_multiqc_config = Channel.fromPath(params.multiqc_config)
 ch_output_docs = Channel.fromPath("$baseDir/docs/output.md")
-Channel.fromPath("$baseDir/assets/where_are_my_files.txt").into { ch_where_are_my_files_bwai; ch_where_are_my_files_fai; ch_where_are_my_files_seqdict }
-
+where_are_my_files = file("$baseDir/assets/where_are_my_files.txt")
 // Validate inputs
 if ( params.fasta.isEmpty () ){
     exit 1, "Please specify --fasta with the path to your reference"
@@ -458,7 +457,7 @@ process makeBWAIndex {
 
     input:
     file fasta from fasta_for_indexing
-    file where_are_my_files from ch_where_are_my_files_bwai
+    file where_are_my_files
 
     output:
     file "BWAIndex" into (bwa_index, bwa_index_bwamem)
@@ -487,7 +486,7 @@ process makeFastaIndex {
 
     input:
     file fasta from fasta_for_indexing
-    file where_are_my_files from ch_where_are_my_files_fai
+    file where_are_my_files
 
     output:
     file "*.fai" into ch_fasta_faidx_index
@@ -516,7 +515,7 @@ process makeSeqDict {
 
     input:
     file fasta from fasta_for_indexing
-    file where_are_my_files from ch_where_are_my_files_seqdict
+    file where_are_my_files
 
     output:
     file "*.dict" into ch_seq_dict
