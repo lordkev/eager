@@ -1301,7 +1301,7 @@ process bwamem {
     when: params.mapper == 'bwamem'
 
     input:
-    tuple samplename, libraryid, lane, seqtype, organism, strandedness, udg, file(r1), file(r2) from ch_lanemerge_for_bwamem
+    tuple samplename, libraryid, lane, seqtype, organism, strandedness, udg, file(r1) from ch_lanemerge_for_bwamem
     file index from bwa_index_bwamem.collect()
 
     output:
@@ -1550,9 +1550,8 @@ if (params.run_bam_filtering) {
         def strandedness = it[5]
         def udg = it[6]     
         def stats = file(it[7])
-        def poststats = file('dummy_postfilterflagstat.stats')
 
-      [samplename, libraryid, lane, seqtype, organism, strandedness, udg, stats, poststats ] }
+      [samplename, libraryid, lane, seqtype, organism, strandedness, udg, stats ] }
     .set{ ch_allflagstats_for_endorspy }
 }
 
