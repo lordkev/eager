@@ -290,7 +290,7 @@ if (params.mapper != 'bwaaln' && !params.mapper == 'circularmapper' && !params.m
 // Index files provided? Then check whether they are correct and complete
 if( params.bwa_index && (params.mapper == 'bwaaln' | params.mapper == 'bwamem')){
     lastPath = params.bwa_index.lastIndexOf(File.separator)
-    bwa_dir =  params.bwa_index.substring(0,lastPath+1)
+    bwa_dir =  params.bwa_index.substring(0,lastPath)
     bwa_base = params.bwa_index.substring(lastPath+1)
 
     Channel
@@ -1037,7 +1037,7 @@ if ( params.skip_collapse ){
         def strandedness = it[5]
         def udg = it[6]
         def r1 = file(it[7])
-        def r2 = 'NA'
+        def r2 = file("$baseDir/assets/dummy_r2_l$lane")
 
         [ samplename, libraryid, lane, seqtype, organism, strandedness, udg, r1, r2 ]
     }
@@ -1101,7 +1101,7 @@ ch_lanemerge_for_mapping
       def udg = it[6]
       def reads = arrayify(it[7])
       def r1 = it[7].getClass() == ArrayList ? reads[0] : it[7]
-      def r2 = reads[1] ? reads[1] : "NA"      
+      def r2 = it[7].getClass() == ArrayList ? it[7][1] : file("$baseDir/assets/dummy_r2_l$lane")
 
       [ samplename, libraryid, lane, seqtype, organism, strandedness, udg, r1, r2 ]
 
@@ -1627,7 +1627,7 @@ process markDup{
     outname = "${bam.baseName}"
     size = "${params.large_ref}" ? '-c' : ''
     """
-    picard -Xmx${task.memory.toMega()}M -Xms${task.memory.toMega()}M MarkDuplicates INPUT=$bam OUTPUT=${libraryid}_rmdup.bam REMOVE_DUPLICATES=TRUE AS=TRUE METRICS_FILE="${libraryid}_rmdup.metrics" VALIDATION_STRINGENCY=SILENT
+    picard -Xms4000m -Xmx7g MarkDuplicates INPUT=$bam OUTPUT=${libraryid}_rmdup.bam REMOVE_DUPLICATES=TRUE AS=TRUE METRICS_FILE="${libraryid}_rmdup.metrics" VALIDATION_STRINGENCY=SILENT
     samtools index "${size}" ${libraryid}_rmdup.bam
     """
 }
@@ -2184,8 +2184,8 @@ if (params.additional_vcf_files == '') {
 // Human biological sex esimtaiton
 
 if (params.sexdeterrmine_bedfile == '') {
-  ch_bed_for_sexdeterrmine = file('NO_FILE')
-} else {
+  ch_bed_for_sexdeterrmine = file("$baseDir/assets/dummy_sexdeterrmine_bedfile")
+} else if (params.run_sexdeterrmine) {
   ch_bed_for_sexdeterrmine = Channel.fromPath(params.sexdeterrmine_bedfile)
 }
 
